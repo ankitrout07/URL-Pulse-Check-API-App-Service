@@ -1,4 +1,4 @@
-name: Build and Deploy Python App
+name: Build and Deploy Pulse-Check API
 
 on:
   push:
@@ -23,8 +23,8 @@ jobs:
           pip install -r requirements.txt
 
       - name: Zip artifact for deployment
-        # We exclude infra and git to keep the package small
-        run: zip -r release.zip . -x "infra/*" ".git/*" "venv/*" "__pycache__/*"
+        # Exclude infra and git to keep the package lean for App Service
+        run: zip -r release.zip . -x "infra/*" ".git/*" "venv/*" "__pycache__/*" ".github/*"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -45,5 +45,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'pulse-check-app'
-          publish-profile: \${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: release.zip
