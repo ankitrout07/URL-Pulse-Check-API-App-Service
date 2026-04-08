@@ -60,7 +60,9 @@ resource "azurerm_linux_web_app" "app" {
   }
 
   app_settings = {
-    "DATABASE_URL" = "postgresql://${var.db_admin_user}:${var.db_password}@${azurerm_postgresql_flexible_server.db.fqdn}:5432/postgres?sslmode=require"
+    "DATABASE_URL"                    = "postgresql://${var.db_admin_user}:${var.db_password}@${azurerm_postgresql_flexible_server.db.fqdn}:5432/postgres?sslmode=require"
+    "SCM_DO_BUILD_DURING_DEPLOYMENT"  = "true"
+    "WEBSITE_RUN_FROM_PACKAGE"        = "0"
   }
 }
 

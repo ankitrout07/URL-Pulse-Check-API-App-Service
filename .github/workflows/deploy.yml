@@ -23,7 +23,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Zip artifact for deployment
-        run: zip -r release.zip . -x "infra/*" ".git/*" "venv/*" "__pycache__/*" ".github/*"
+        run: zip -r release.zip . -x "infra/*" ".git/*" "venv/*" "__pycache__/*" ".github/*" "tests/*"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -34,15 +34,24 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    environment:
+      name: production
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: python-app
 
+      - name: Unzip artifact
+        run: |
+          mkdir -p deploy
+          unzip release.zip -d deploy
+
       - name: 'Deploy to Azure Web App'
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: "pulse-check-app"
+          app-name: "one8"
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: release.zip
+          package: deploy
