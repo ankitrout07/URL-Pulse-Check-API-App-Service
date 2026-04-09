@@ -5,7 +5,7 @@ variable "project_name" {
 
 variable "location" {
   description = "Azure region"
-  default     = "East US"
+  default     = "Central India"
 }
 
 variable "db_admin_user" {
