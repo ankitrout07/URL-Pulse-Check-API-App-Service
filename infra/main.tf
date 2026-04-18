@@ -60,6 +60,10 @@ resource "azurerm_linux_web_app" "app" {
   location            = azurerm_resource_group.rg.location
   service_plan_id     = azurerm_service_plan.plan.id
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   site_config {
     application_stack {
       python_version = "3.11"
@@ -68,10 +72,21 @@ resource "azurerm_linux_web_app" "app" {
   }
 
   app_settings = {
-    "DATABASE_URL"                   = "postgresql://${var.db_admin_user}:${var.db_password}@${azurerm_postgresql_flexible_server.db.fqdn}:5432/postgres?sslmode=require"
+    "DATABASE_URL"                   = "postgresql://${azurerm_linux_web_app.app.name}@${azurerm_postgresql_flexible_server.db.fqdn}:5432/postgres?sslmode=require"
     "SCM_DO_BUILD_DURING_DEPLOYMENT" = "false"
     "WEBSITE_RUN_FROM_PACKAGE"       = "0"
   }
+}
+
+# Get current client config to set the user as the DB AD Admin
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_postgresql_flexible_server_active_directory_administrator" "ad_admin" {
+  server_id           = azurerm_postgresql_flexible_server.db.id
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  object_id           = data.azurerm_client_config.current.object_id
+  principal_name      = "AdminUser" # This is a display name
+  principal_type      = "User"
 }
 
 # Firewall rule to allow Azure Services (the App Service) to access the DB
